@@ -1,2 +1,16 @@
-"ai-ticket-assistant/" 
-"ai-ticket-assistant/" 
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# VSCode settings
+.vscode/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
