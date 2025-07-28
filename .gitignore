@@ -1,16 +1,16 @@
-# Node
+# Node modules
 node_modules/
+
+# Environment files
 .env
-.env.* 
+.env.*
+
+# VSCode settings
+.vscode/
+
+# Logs
 *.log
 
-# System
+# System files
 .DS_Store
 Thumbs.db
-
-# Build
-dist/
-build/
-
-# VSCode
-.vscode/
