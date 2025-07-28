@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import cros from "cros";
+import userRoutes from "./routes/user.js";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -8,6 +9,8 @@ const app = express();
 
 app.use(cros())
 app.use(express.json())
+
+app.use("/api/auth", userRoutes);
 
 mongoose
      .connect(process.env.MONGODB_URI)
