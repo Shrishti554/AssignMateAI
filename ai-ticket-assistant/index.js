@@ -1,6 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
-import cros from "cros";
+import cors from "cors";
 import userRoutes from "./routes/user.js";
 import {serve} from "inngest/express";
 import ticketRoutes from "./routes/ticket.js";
@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 
-app.use(cros())
+app.use(cors())
 app.use(express.json())
 
 app.use("/api/auth", userRoutes);

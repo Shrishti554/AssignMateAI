@@ -1,6 +1,6 @@
-import { inngest } from "../client";
+import { inngest } from "../client.js";
 import Ticket from "../../models/ticket.js";
-import user from "../../models/use.js";
+import User from "../../models/user.js";
 import { NonRetriableError } from "inngest";
 import { sendMail } from "../../utils/mailer.js";
 import analyzeTicket from "../../utils/agent.js";
@@ -10,19 +10,20 @@ export const onTicketCreate = inngest.createFunction(
     { id: "on-ticket-created" , retries:2 },
     { event: "ticket/created"},
     async ({event , step }) => {
+        console.log("🎫 Ticket creation background job started for:", event.data.ticketId);
         try {
             const {ticketId} = event.data
            //fetch ticket fromDB 
           const ticket = await step.run("fetch-ticket", async() =>{
               const ticketObject = await Ticket.findById(ticketId)
-            if(!ticket){
+            if(!ticketObject){
                 throw new NonRetriableError("Ticket not found")
             }
             return ticketObject;
            })
 
            await step.run("update-ticket-status", async() =>{
-            await Ticket.findByIdAndUpdate(ticketId._id, {
+            await Ticket.findByIdAndUpdate(ticketId, {
                 status:"TODO",
             })
            })
@@ -32,7 +33,7 @@ export const onTicketCreate = inngest.createFunction(
            const relatedSkills =await step.run("ai-processing", async () =>{
                let skills =[]
                if(aiResponse){
-                await Ticket.findByIdAndUpdate(ticket._id, {
+                await Ticket.findByIdAndUpdate(ticketId, {
                     priority: !["low", "medium", "high"].includes(aiResponse.priority) ? "medium" : aiResponse.priority,
                     helpfulNotes: aiResponse.helpfulNotes,
                     relatedSkills: aiResponse.relatedSkills,
@@ -46,6 +47,7 @@ export const onTicketCreate = inngest.createFunction(
 
 
            const moderator = await step.run("assign-moderator", async() =>{
+            console.log("🔍 Looking for moderator with skills:", relatedSkills);
             let user =await User.findOne({
                 role:"moderator",
                 skills:{
@@ -56,11 +58,14 @@ export const onTicketCreate = inngest.createFunction(
                 }
             })
             if (!user) {
+                console.log("❌ No moderator found, assigning to admin");
                 user=await User.findOne({
                     role:"admin",
                 })
+            } else {
+                console.log("✅ Found moderator:", user.email);
             }
-            await Ticket.findByIdAndUpdate(ticket._id,{
+            await Ticket.findByIdAndUpdate(ticketId,{
                 assignedTo: user?._id || null
             })
             return user
@@ -68,7 +73,7 @@ export const onTicketCreate = inngest.createFunction(
 
            await step.run("send-email-notification", async() =>{
             if(moderator){
-                const finalTicket = await Ticket.findById(ticket._id)
+                const finalTicket = await Ticket.findById(ticketId)
                 await sendMail(
                     moderator.email, 
                     "Ticket assigned", 
@@ -76,10 +81,10 @@ export const onTicketCreate = inngest.createFunction(
             }
            })
 
-            return {sucess:true}
+            return {success:true}
         } catch (err) {
             console.error("Error running the step", err.message)
-            return {sucess:false}
+            return {success:false}
         }
     }
 )

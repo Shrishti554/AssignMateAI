@@ -1,5 +1,5 @@
-import { inngest } from "../client";
-import user from "../../models/use.js";
+import { inngest } from "../client.js";
+import User from "../../models/user.js";
 import { NonRetriableError } from "inngest";
 import { sendMail } from "../../utils/mailer.js";
 
@@ -11,7 +11,7 @@ export const onUserSignup = inngest.createFunction(
         try{
             const  {email} = event.data
             const user = await step.run("get-user-email", async() =>{
-                const userObject =await user.findOne({email})
+                const userObject =await User.findOne({email})
                 if(!userObject){
                     throw new NonRetriableError("User not found")
                 }
@@ -30,7 +30,7 @@ export const onUserSignup = inngest.createFunction(
             return {success:true}
         } catch(error){
             console.log("Error running step ", error.message);
-            return {sucess:false}
+            return {success:false}
         }
     }
 )

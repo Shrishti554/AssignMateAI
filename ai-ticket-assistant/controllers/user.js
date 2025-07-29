@@ -1,20 +1,24 @@
-import brcypt from "bcrypt";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import user from "../models/user.js";
+import User from "../models/user.js";
 import {inngest} from "../inngest/client.js";
 
 export const signup = async (req, res) => {
     const {email, password, skills = []} = req.body;
     try {
-        const hashed =brcypt.hash(password , 10)
-        const user =await User.create({email, password:hashed, skills})
+        const hashed = await bcrypt.hash(password , 10)
+        const user = await User.create({email, password:hashed, skills})
 
-        await inngest.send({
-            name:"user/signup",
-            data: {
-                email,
-            },
-        })
+        try {
+            await inngest.send({
+                name:"user/signup",
+                data: {
+                    email,
+                },
+            })
+        } catch (inngestError) {
+            console.log("Inngest error (non-critical):", inngestError.message);
+        }
 
         const token = jwt.sign(
                 { _id: user._id, role:user.role},
@@ -24,6 +28,7 @@ export const signup = async (req, res) => {
         res.json({user, token})
 
     } catch (error) {
+        console.error("Signup error:", error.message);
         res.status(500).json({error:"Signup failed", details:error.message});
     }
 }
@@ -31,10 +36,10 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
     const {email, password} = req.body
     try {
-        const user = User.findOne({email})
+        const user = await User.findOne({email})
         if(!user) return res.status(401).json({error:"User not found"})
 
-            const isMatch= await brcypt.compare(password, user.password);
+            const isMatch= await bcrypt.compare(password, user.password);
 
             if(!isMatch){
                 return res.status(401).json({error:"Invalid password"});
