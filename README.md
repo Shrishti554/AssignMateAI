@@ -1,4 +1,4 @@
-# AI Ticket Assistant
+# AssignMateAi
 
 A full-stack application for AI-powered ticket management system.
 
