@@ -6,13 +6,15 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "inngest-dev":"npx inngest-cli@latest dev"
+    "build": "vite build",
+    "inngest-dev": "npx inngest-cli@latest dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "vite": "^7.1.4"
   },
   "dependencies": {
     "@inngest/agent-kit": "^0.9.0",
